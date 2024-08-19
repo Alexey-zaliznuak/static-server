@@ -1,91 +1,49 @@
-from enum import Enum
+from pydantic import BaseModel
 from typing import Optional
-from fastapi import Query
-from pydantic import BaseModel, Field, model_validator
-from datetime import datetime
 from uuid import UUID
-
-from src.infrastructure.database.types import Where
-from src.infrastructure.database.filtering import BaseFilterModel
-
-from .models import Post
+from datetime import datetime
 
 
-class BasicPost(BaseModel):
+class FileCreate(BaseModel):
+    title: Optional[str] = None
+    slug: Optional[str] = None
+    description: Optional[str] = None
+    mime_type: Optional[str] = None
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "title": "Example title",
+                "slug": "example-slug",
+                "description": "This is an example file.",
+                "mime_type": "text/plain",
+            }
+        }
+
+
+class FileGet(BaseModel):
     id: UUID
     created_at: datetime
     updated_at: datetime
 
-    title: str = Field(max_length=100)
-    slug: str = Field(max_length=150)
-    short_description: str = Field(max_length=300)
-    reading_time: int = Field(gt=0, le=120)
+    title: Optional[str] = None
+    slug: Optional[str] = None
+    description: Optional[str] = None
 
-    content_file: str
-    preview_file: str
-
-    class Config:
-        from_attributes = True
-
-
-class UniqueFieldsEnum(str, Enum):
-    id = "id"
-    slug = "slug"
-
-
-class BasicEditablePost(BaseModel):
-    title: str = Field(max_length=100)
-    short_description: str = Field(max_length=300)
-    reading_time: int = Field(gt=0, le=120)
+    size: int
+    mime_type: str
 
     class Config:
         from_attributes = True
-
-
-class GetPostResponse(BaseModel):
-    id: UUID
-    created_at: datetime
-    updated_at: datetime
-
-    title: str = Field(max_length=100)
-    slug: str = Field(max_length=150)
-    short_description: str = Field(max_length=300)
-    reading_time: int = Field(gt=0, le=120)
-
-    class Config:
-        from_attributes = True
-
-
-class PostFilterParams(BaseModel, BaseFilterModel):
-    hasFullContent : Optional[bool] = Query(None)
-
-    def to_where_statement(self) -> Where:
-        return [
-            self.to_where_has_file(),
-        ]
-
-    def to_where_has_file(self) -> Where:
-        if self.hasFullContent == True:
-            return [
-                Post.content_file.is_not(None),
-                Post.preview_file.is_not(None),
-            ]
-
-        if self.hasFullContent == False:
-            return [
-                Post.content_file.is_(None),
-                Post.preview_file.is_(None),
-            ]
-
-        return None
-
-
-class CreatePost(BasicEditablePost):
-    pass
-
-
-class UpdatePost(BaseModel):
-    title: Optional[str] = Field(None, max_length=100)
-    slug: Optional[str] = Field(None, max_length=150)
-    short_description: Optional[str] = Field(None, max_length=300)
-    reading_time: Optional[int] = Field(None, gt=0, le=120)
+        json_schema_extra = {
+            "example": {
+                "id": "123e4567-e89b-12d3-a456-426614174000",
+                "created_at": "2024-08-19T12:34:56.123456",
+                "updated_at": "2024-08-19T12:34:56.123456",
+                "title": "Example title",
+                "slug": "example-slug",
+                "description": "This is an example file.",
+                "size": 12345,
+                "mime_type": "text/plain",
+            }
+        }

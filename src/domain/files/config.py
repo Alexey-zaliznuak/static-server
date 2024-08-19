@@ -1,5 +1,5 @@
-from src.config import Config
+from src.config import BaseConfig
 
 
-class PostsConfig(Config):
+class FilesConfig(BaseConfig):
     BASE_YANDEX_DISK_DIRECTORY: str

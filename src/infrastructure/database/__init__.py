@@ -1,25 +1,31 @@
-import contextlib
-from typing import AsyncGenerator
+import asyncio
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from tortoise import Tortoise
 
-from src.config import Config
+try:
+    from src.config import TORTOISE_ORM
+    from src.domain.files.models import File
 
-
-Base = declarative_base()
-
-engine = create_async_engine(Config.DATABASE_URL)
-async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-
-async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_maker() as session:
-        yield session
+except ImportError:
+    import os
+    import sys
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+    from src.config import TORTOISE_ORM
 
 
-@contextlib.asynccontextmanager
-async def get_async_session_with_context_manager() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session_maker() as session:
-        yield session
+async def tortoise_startup():
+    await Tortoise.init(config=TORTOISE_ORM)
+    await Tortoise.generate_schemas()
+
+
+async def tortoise_shutdown():
+    await Tortoise.close_connections()
+
+
+async def _init():
+    await Tortoise.init(config=TORTOISE_ORM)
+    await tortoise_shutdown()
+
+
+if __name__ == "__main__":
+    asyncio.run(_init())
