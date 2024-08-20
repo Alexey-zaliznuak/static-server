@@ -2,41 +2,23 @@ import os
 from typing import Literal
 from uuid import UUID
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    File,
-    Header,
-    HTTPException,
-    Query,
-    Request,
-    Response,
-    UploadFile,
-    status,
-)
+from fastapi import (APIRouter, Depends, File, Header, HTTPException, Query,
+                     Request, Response, UploadFile, status)
 from fastapi.responses import FileResponse
 from fastapi_restful.cbv import cbv
 
 # from src.infrastructure.auth import admin_access
 from infrastructure.route.headers import NO_CACHE_HEADER
+from src.domain.files.models import File
 from src.infrastructure.rate_limit import limiter
-from src.infrastructure.route.pagination import (
-    PaginatedResponse,
-    PaginationParams,
-    get_pagination_params
-)
+from src.infrastructure.route.pagination import (PaginatedResponse,
+                                                 PaginationParams,
+                                                 get_pagination_params)
 
 from .config import FilesConfig as Config
-from src.domain.files.models import File
-from .schemas import (
-    FileGet,
-    FileCreate,
-    FileUpdate,
-    UniqueFieldsEnum
-)
+from .dependencies import validate_file, validate_file_id
+from .schemas import FileCreate, FileGet, FileUpdate, UniqueFieldsEnum
 from .service import FilesService
-from .dependencies import validate_file_id, validate_file
-
 
 router = APIRouter(tags=["files"])
 

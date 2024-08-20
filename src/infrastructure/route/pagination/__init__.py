@@ -1,11 +1,11 @@
-from tortoise.queryset import QuerySet
-from tortoise.models import Model
-from typing import Self, Type, TypeVar, Generic, List, Optional, Dict, overload
-from pydantic import BaseModel
+from typing import Dict, Generic, List, Optional, Self, Type, TypeVar, overload
+
 from fastapi import Query
+from pydantic import BaseModel
+from tortoise.models import Model
+from tortoise.queryset import QuerySet
+
 from src.domain.files.models import File
-
-
 
 T = TypeVar("T", bound=Model)
 

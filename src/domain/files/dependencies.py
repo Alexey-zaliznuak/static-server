@@ -4,7 +4,6 @@ from uuid import UUID
 from .schemas import UniqueFieldsEnum
 from .service import FilesService
 
-
 service = FilesService()
 
 validate_file = FilesService.get_instance_or_404

@@ -1,8 +1,9 @@
+from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
+
+from pydantic import BaseModel
 
 
 class UniqueFieldsEnum(str, Enum):

@@ -1,10 +1,13 @@
 import mimetypes
+from dataclasses import dataclass
+
 from fastapi import HTTPException, UploadFile
+from starlette import status
+
 from domain.files.schemas import UniqueFieldsEnum
 from src.utils import SingletonMeta
+
 from .models import File
-from starlette import status
-from dataclasses import dataclass
 
 
 @dataclass
@@ -14,7 +17,6 @@ class FileMetadata:
 
 
 class FilesService(metaclass=SingletonMeta):
-
     async def upload_file(self, instance: File, file: UploadFile) -> str:
         pass
 
