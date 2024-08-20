@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS "file" (
     "mime_type" VARCHAR(50) NOT NULL
 );
 CREATE INDEX IF NOT EXISTS "idx_file_slug_c85814" ON "file" ("slug");
+CREATE INDEX IF NOT EXISTS "idx_file_title_385d2a" ON "file" ("title");
 COMMENT ON COLUMN "file"."size" IS 'Size in bytes';"""
 
 

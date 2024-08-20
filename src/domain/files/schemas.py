@@ -1,14 +1,19 @@
+from enum import Enum
 from pydantic import BaseModel
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
 
+class UniqueFieldsEnum(str, Enum):
+    id = "id"
+    slug = "slug"
+
+
 class FileCreate(BaseModel):
     title: Optional[str] = None
     slug: Optional[str] = None
     description: Optional[str] = None
-    mime_type: Optional[str] = None
 
     class Config:
         json_schema_extra = {
@@ -16,9 +21,12 @@ class FileCreate(BaseModel):
                 "title": "Example title",
                 "slug": "example-slug",
                 "description": "This is an example file.",
-                "mime_type": "text/plain",
             }
         }
+
+
+class FileUpdate(FileCreate):
+    pass
 
 
 class FileGet(BaseModel):
@@ -30,7 +38,6 @@ class FileGet(BaseModel):
     slug: Optional[str] = None
     description: Optional[str] = None
 
-    size: int
     mime_type: str
 
     class Config:

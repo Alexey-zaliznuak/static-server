@@ -12,12 +12,13 @@ from fastapi import (
     Request,
     Response,
     UploadFile,
-    status
+    status,
 )
 from fastapi.responses import FileResponse
 from fastapi_restful.cbv import cbv
 
 # from src.infrastructure.auth import admin_access
+from infrastructure.route.headers import NO_CACHE_HEADER
 from src.infrastructure.rate_limit import limiter
 from src.infrastructure.route.pagination import (
     PaginatedResponse,
@@ -29,8 +30,12 @@ from .config import FilesConfig as Config
 from src.domain.files.models import File
 from .schemas import (
     FileGet,
+    FileCreate,
+    FileUpdate,
+    UniqueFieldsEnum
 )
 from .service import FilesService
+from .dependencies import validate_file_id, validate_file
 
 
 router = APIRouter(tags=["files"])
@@ -52,125 +57,59 @@ class FilesView:
             pagination=pagination,
         )
 
-    # @router.get("/{identifier}/", response_model=GetPostResponse)
-    # @limiter.limit("10/minute")
-    # async def identifier(
-    #     self,
-    #     request: Request,
-    #     identifier: str,  # TODO refactor
-    #     field: UniqueFieldsEnum = Query(UniqueFieldsEnum.id),
-    # ):
-    #     try:
-    #         if field == "id":
-    #             return await self.service.get_by_id(identifier, self.session)
-    #         if field == "slug":
-    #             return await self.service.get_by_slug(identifier, self.session)
+    @router.get("/{identifier}/", response_model=FileGet)
+    @limiter.limit("10/minute")
+    async def identifier(
+        self,
+        request: Request,
+        file: File = Depends(validate_file)
+    ):
+        return file
 
-    #     except Exception as e:
-    #         print(e)
-    #         return Response("Not Found", status_code=status.HTTP_404_NOT_FOUND)
+    @router.post("/", response_model=FileGet)
+    async def create(self, data: FileCreate, request: Request):
+        new_file = File(**data)
 
-    # @router.get("/{post_slug}/files/content")
-    # @limiter.limit("10/minute")
-    # async def get_content_file(
-    #     self,
-    #     request: Request,
-    #     post: File = Depends(validate_post_slug),
-    # ):
-    #     if post.content_file is None or not os.path.exists(post.content_file):
-    #         raise HTTPException(status_code=404, detail="File not found")
+        await new_file.save()
 
-    #     return FileResponse(path=post.content_file, media_type=Config.POSTS_CONTENT_FILE_MEDIA_TYPE)
+        return Response(new_file, status.HTTP_201_CREATED)
 
-    # @router.get("/{post_slug}/files/preview")
-    # @limiter.limit("10/minute")
-    # async def get_preview_file(
-    #     self,
-    #     request: Request,
-    #     post: File = Depends(validate_post_slug),
-    # ):
-    #     if post.preview_file is None or not os.path.exists(post.preview_file):
-    #         raise HTTPException(status_code=404, detail="File not found")
+    @router.patch("/{file_id}", response_model=FileGet)
+    async def update_by_id(
+        self,
+        data: FileUpdate,
+        request: Request,
+        file: File = Depends(validate_file_id),
+    ):
+        file = file.update_from_dict(data)
 
-    #     return FileResponse(path=post.preview_file, media_type=Config.POSTS_CONTENT_FILE_MEDIA_TYPE)
+        await file.save()
 
-    # @router.post("/", response_model=GetPostResponse)
-    # @admin_access()
-    # async def create_post(self, data: CreatePost, request: Request):
-    #     new_post = File(
-    #         title=data.title,
-    #         slug=await File.generate_slug(data.title, self.session),
-    #         short_description=data.short_description,
-    #         reading_time=data.reading_time,
-    #     )
+        return Response(file, status.HTTP_200_OK, headers={**NO_CACHE_HEADER})
 
-    #     await self.service.save_and_refresh(new_post, self.session)
+    @router.put("/{file_id}/files/preview", response_model=G)
+    async def upload(
+        self,
+        request: Request,
+        upload_file: UploadFile = File(...),
+        file_instance: File = Depends(validate_file_id),
+    ):
+        try:
+            path = await self.service.upload_file(file_instance, upload_file)
 
-    #     if not new_post:
-    #         raise HTTPException(status.HTTP_409_CONFLICT, "Failed to create post")
+        except:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to upload")
 
-    #     return new_post
+        file_instance = file_instance.update_from_dict(dict(
+            path=path,
+            **await self.service.get_file_metadata(upload_file)
+        ))
 
-    # @router.patch("/{post_id}", response_model=GetPostResponse)
-    # @admin_access()
-    # async def update_by_id(
-    #     self,
-    #     data: UpdatePost,
-    #     request: Request,
-    #     post: File = Depends(validate_post_id),
-    # ):
-    #     await self.service.update_instance_fields(
-    #         post,
-    #         data=data.model_dump(exclude_unset=True),
-    #         session=self.session,
-    #         save=True,
-    #     )
-    #     return post
-
-    # @router.put("/{post_id}/files/content", response_model=GetPostResponse)
-    # @admin_access()
-    # async def upload_post_content_file(
-    #     self,
-    #     request: Request,
-    #     file: UploadFile = File(...),
-    #     post: File = Depends(validate_post_id),
-    # ):
-    #     await self.service.update_instance_fields(
-    #         post,
-    #         data={"content_file": await self.service.save_content_file(post.id, file)},
-    #         session=self.session,
-    #         save=True,
-    #     )
-    #     return post
-
-    # @router.put("/{post_id}/files/preview", response_model=GetPostResponse)
-    # @admin_access()
-    # async def upload_post_preview_file(
-    #     self,
-    #     request: Request,
-    #     file: UploadFile = File(...),
-    #     post: File = Depends(validate_post_id),
-    # ):
-    #     await self.service.update_instance_fields(
-    #         post,
-    #         data={"preview_file": await self.service.save_preview_file(post.id, file)},
-    #         session=self.session,
-    #         save=True,
-    #     )
-    #     return post
-
-    # @router.delete("/{post_id}", response_model=None)
-    # @admin_access()
-    # async def delete_post_by_id(
-    #     self,
-    #     request: Request,
-    #     post: BasicPost = Depends(validate_post_id),
-    # ):
-    #     try:
-    #         await self.service.delete_by_id(post.id, post.file, self.session)
-
-    #     except FileNotFoundError:
-    #         print("FILE NOT FOUND", post.file, flush=True)
-    #         raise
-
-    #     return Response(status_code=status.HTTP_204_NO_CONTENT)
+    @router.delete("/{file_id}", response_model=None)
+    async def delete_by_id(
+        self,
+        request: Request,
+        file: File = Depends(validate_file_id),
+    ):
+        await file.delete()
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
