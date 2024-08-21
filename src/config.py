@@ -10,6 +10,8 @@ load_dotenv(".env", override=True)
 class BaseConfig(BaseSettings):
     DATABASE_URL: str
 
+    AUTHORIZATION_KEY: str
+
 
 Config = BaseConfig()
 

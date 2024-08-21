@@ -2,12 +2,19 @@ import mimetypes
 import os
 import uuid
 
-from pydantic import ValidationError
+from fastapi import HTTPException
 from tortoise import fields
 from tortoise.models import Model
+from tortoise.expressions import Q
+from starlette import status
 
 from src.utils import slugify
-from utils import is_uuid
+from src.utils import is_uuid
+from typing import List
+from string import ascii_letters, digits
+
+
+AVAILABLE_SLUG_CHARS = ascii_letters + digits + "-"
 
 
 class File(Model):
@@ -21,23 +28,13 @@ class File(Model):
 
     path = fields.CharField(max_length=300, null=True)
     size = fields.IntField(description="Size in bytes", null=True)
-    mime_type = fields.CharField(max_length=50, null=True)
+    mime_type = fields.CharField(max_length=200, null=True)
 
     class Meta:
         indexes = [
             ("slug",),
             ("title",),
         ]
-
-    @staticmethod
-    def make_path(id: uuid.UUID, filename: str) -> str:
-        """
-        Generate file path based on UUID and filename.
-        Example: <first 2 symbols of id>/<second 2 symbols of id>/<rest_of_id>.<extension>
-        """
-        id_str = str(id)
-        extension = os.path.splitext(filename)[1]  # Get the file extension
-        return f"{id_str[:2]}/{id_str[2:4]}/{id_str[4:]}{extension}"
 
     async def save(self, *args, **kwargs):
         self.clear()
@@ -55,25 +52,37 @@ class File(Model):
     def validate(self):
         self.validate_slug(self.slug)
 
-    def is_valid(self, *, use_clear: bool = True) -> bool:
-        if use_clear:
-            self.clear()
+    async def validate_unique(self):
+        """
+        Use before create to check constraints.
+        """
+        existing_record = await self.filter(Q(id=self.id) | Q(slug=self.slug)).exists()
 
-        try:
-            self.validate()
-            return True
-        except:
-            return False
+        if existing_record:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Record with provided unique fields already exists")
 
     @staticmethod
     def validate_slug(value: str):
         if value and is_uuid(value):
-            raise ValidationError(f"Slug can not be a UUID: {value}")
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Slug can not be a UUID: {value}")
+
+        for char in value:
+            if char not in AVAILABLE_SLUG_CHARS:
+                raise HTTPException(
+                    status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    f"Invalid slug: {value}, available chars: '{AVAILABLE_SLUG_CHARS}'"
+                )
 
     @property
-    def filename(self) -> str:
+    def filename(self) -> str | None:
+        if not self.path:
+            return None
+
         return os.path.basename(self.path)
 
     @property
-    def directory(self) -> str:
+    def directory(self) -> str | None:
+        if not self.path:
+            return None
+
         return os.path.dirname(self.path)

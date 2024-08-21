@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional
+from typing import Any, Dict, Literal, Optional, Set
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -39,7 +39,7 @@ class FileGet(BaseModel):
     slug: Optional[str] = None
     description: Optional[str] = None
 
-    mime_type: str
+    mime_type: Optional[str]
 
     class Config:
         from_attributes = True
