@@ -41,10 +41,10 @@ class FilesService(metaclass=SingletonMeta):
             instance = await self.get_instance(identifier, field)
 
         except Exception:
-            self._raise_not_found()
+            self.raise_not_found(identifier, field)
 
         if not instance:
-            self._raise_not_found()
+            self.raise_not_found(identifier, field)
 
         return instance
 
@@ -62,8 +62,8 @@ class FilesService(metaclass=SingletonMeta):
             mime_type = file.content_type or mimetypes.guess_type(file.filename)[0]
         )
 
-    def raise_not_found(self, file: File):
-        logger.warn("Not found", )
+    def raise_not_found(self, identifier: str, field: UniqueFieldsEnum = UniqueFieldsEnum.id):
+        logger.error(f"Not found, {identifier=}, {field=}")
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
 
     def _make_file_path(self, instance: File, file: UploadFile) -> str:

@@ -54,7 +54,11 @@ class FilesView:
         file: File = Depends(validate_file)
     ):
         logger.info("Get file details: " + str(dict(file)))
-        return file
+
+        return JSONResponse(
+            jsonable_encoder(FileGet.model_validate(file).model_dump()),
+            headers={**NO_CACHE_HEADER}
+        )
 
     @router.get("/{identifier}")
     @limiter.limit("10/minute")
@@ -79,7 +83,12 @@ class FilesView:
         new_file = FileGet.model_validate(new_file).model_dump()
 
         logger.info("Created file: " + str(new_file))
-        return new_file
+
+        return JSONResponse(
+            jsonable_encoder(new_file),
+            status_code=status.HTTP_201_CREATED,
+            headers={**NO_CACHE_HEADER},
+        )
 
     @router.patch("/{file_id}", response_model=FileGet)
     @admin_access()
@@ -99,7 +108,9 @@ class FilesView:
         await file.save()
 
         return JSONResponse(
-            content=jsonable_encoder(file),
+            content=jsonable_encoder(
+                FileGet.model_validate(file).model_dump()
+            ),
             status_code=status.HTTP_200_OK,
             headers={**NO_CACHE_HEADER}
         )
@@ -126,7 +137,12 @@ class FilesView:
             logger.info("Updated file after uploading: " + str(dict(file)))
             await instance.save()
 
-            return instance
+            return JSONResponse(
+                jsonable_encoder(
+                    FileGet.model_validate(instance).model_dump()
+                ),
+                headers={**NO_CACHE_HEADER}
+            )
 
         except ValidationError:
             logger.error("Failed to upload: " + str(dict(file)))
@@ -142,4 +158,4 @@ class FilesView:
         logger.warn("Delete file: " + str(dict(file)))
 
         await file.delete()
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return Response(status_code=status.HTTP_204_NO_CONTENT, headers={**NO_CACHE_HEADER})
