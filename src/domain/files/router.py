@@ -1,14 +1,14 @@
-import os
-from typing import Literal
-from uuid import UUID
-
-from fastapi import (APIRouter, Depends, File as FastAPIFile, Header, HTTPException, Query,
-                     Request, Response, UploadFile, status)
+from fastapi import APIRouter, Depends
+from fastapi import File as FastAPIFile
+from fastapi import (Header, HTTPException, Query, Request, Response,
+                     UploadFile, status)
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi_restful.cbv import cbv
 from pydantic import ValidationError
 
 from external.yandex_disk import YandexDiskService
+from infrastructure.auth import admin_access
 from infrastructure.route.headers import NO_CACHE_HEADER
 from src.domain.files.models import File
 from src.infrastructure.rate_limit import limiter
@@ -27,11 +27,12 @@ router = APIRouter(tags=["files"])
 @cbv(router)
 class FilesView:
     service = FilesService()
-
     yandex_disk_service = YandexDiskService()
+
 
     @router.get("/", response_model=PaginatedResponse[FileGet])
     @limiter.limit("10/minute")
+    @admin_access()
     async def get_all(
         self,
         request: Request,
@@ -42,8 +43,10 @@ class FilesView:
             pagination=pagination,
         )
 
+
     @router.get("/{identifier}/info", response_model=FileGet)
     @limiter.limit("10/minute")
+    @admin_access()
     async def get_info(
         self,
         request: Request,
@@ -62,8 +65,8 @@ class FilesView:
             url = await self.yandex_disk_service.get_download_link(file.path)
         )
 
-
     @router.post("/", response_model=FileGet)
+    @admin_access()
     async def create(self, data: FileCreate, request: Request):
         new_file = File(**data.model_dump())
 
@@ -73,20 +76,26 @@ class FilesView:
         return FileGet.model_validate(new_file).model_dump()
 
     @router.patch("/{file_id}", response_model=FileGet)
+    @admin_access()
     async def update_by_id(
         self,
         data: FileUpdate,
         request: Request,
         file: File = Depends(validate_file_id),
     ):
-        file = file.update_from_dict(data)
+        file = file.update_from_dict(data.model_dump())
 
         await file.save()
 
-        return Response(file, status.HTTP_200_OK, headers={**NO_CACHE_HEADER})
+        return JSONResponse(
+            content=jsonable_encoder(file),
+            status_code=status.HTTP_200_OK,
+            headers={**NO_CACHE_HEADER}
+        )
 
     @router.put("/{file_id}")
-    async def upload(
+    @admin_access()
+    async def upload_by_id(
         self,
         request: Request,
         file: UploadFile = FastAPIFile(...),
@@ -109,6 +118,7 @@ class FilesView:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to upload")
 
     @router.delete("/{file_id}", response_model=None)
+    @admin_access()
     async def delete_by_id(
         self,
         request: Request,

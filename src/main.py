@@ -34,12 +34,11 @@ app.add_middleware(
 )
 
 
-@app.get("/ping", response_model=Literal["pong"])
+@app.get("/test/ping", response_model=Literal["pong"])
 def ping():
-    return {"message": "pong"}
+    return "pong"
 
 
 app.include_router(files_router)
-
 
 app.openapi_schema = build_custom_openapi_schema(app)

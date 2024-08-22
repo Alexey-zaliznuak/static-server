@@ -1,17 +1,15 @@
 import mimetypes
 import os
 import uuid
+from string import ascii_letters, digits
 
 from fastapi import HTTPException
-from tortoise import fields
-from tortoise.models import Model
-from tortoise.expressions import Q
 from starlette import status
+from tortoise import fields
+from tortoise.expressions import Q
+from tortoise.models import Model
 
-from src.utils import slugify
-from src.utils import is_uuid
-from typing import List
-from string import ascii_letters, digits
+from src.utils import is_uuid, slugify
 
 
 AVAILABLE_SLUG_CHARS = ascii_letters + digits + "-"

@@ -1,15 +1,15 @@
 import mimetypes
-from dataclasses import dataclass
 import os
+from dataclasses import dataclass
 
 from fastapi import HTTPException, UploadFile
 from starlette import status
 
 from domain.files.schemas import UniqueFieldsEnum
 from external.yandex_disk import YandexDiskService
+from src.domain.files.models import File
 from src.utils import SingletonMeta
 
-from src.domain.files.models import File
 from .config import FilesConfig
 
 
@@ -33,8 +33,13 @@ class FilesService(metaclass=SingletonMeta):
 
     async def get_instance_or_404(self, identifier: str, field: UniqueFieldsEnum | None = UniqueFieldsEnum.id) -> File:
         field = field if field else UniqueFieldsEnum.id
+        instance = None
 
-        instance = await self.get_instance(identifier, field)
+        try:
+            instance = await self.get_instance(identifier, field)
+
+        except:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
 
         if not instance:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")

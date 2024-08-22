@@ -1,14 +1,16 @@
 import asyncio
-from functools import wraps
-import os
-from time import time
-import yadisk
-import aiohttp
-from .config import YandexDiskConfig as Config
-from fastapi import UploadFile
-from utils import SingletonMeta
 import logging
+import os
+from functools import wraps
+from time import time
 
+import aiohttp
+import yadisk
+from fastapi import UploadFile
+
+from utils import SingletonMeta
+
+from .config import YandexDiskConfig as Config
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +69,8 @@ class YandexDiskService(metaclass=SingletonMeta):
                 response.raise_for_status()
                 print(f"Create file: {path}")
 
+    @handle_unauthorized_error
+    @handle_check_client
     async def create_directory(self, dir_path: str):
         dirs = dir_path.split("/")
         current_path = ""
@@ -84,6 +88,29 @@ class YandexDiskService(metaclass=SingletonMeta):
 
                 except Exception as e:
                     raise e
+
+    @handle_unauthorized_error
+    @handle_check_client
+    async def get_download_link(self, path: str):
+        link = await self.client.get_download_link(path)
+
+        print(f"New link recieved: {link}, {path=}")
+
+        return link
+
+    @handle_unauthorized_error
+    @handle_check_client
+    async def remove(self, path: str, *, throw_not_found: bool = True):
+        try:
+            await self.client.remove(path)
+            print(f"Remove object: {path}")
+
+        except yadisk.exceptions.NotFoundError as e:
+            if throw_not_found:
+                print(f"Failed when remove resource: {path}")
+                raise e
+
+            print(f"Resource not found: {path}")
 
     async def _get_new_access_token(self):
         async with aiohttp.ClientSession() as session:
@@ -115,26 +142,3 @@ class YandexDiskService(metaclass=SingletonMeta):
                 )
             ) as response:
                 return await response.json()
-
-    @handle_unauthorized_error
-    @handle_check_client
-    async def get_download_link(self, path: str):
-        link = await self.client.get_download_link(path)
-
-        print(f"New link recieved: {link}, {path=}")
-
-        return link
-
-    @handle_unauthorized_error
-    @handle_check_client
-    async def remove(self, path: str, *, throw_not_found: bool = True):
-        try:
-            await self.client.remove(path)
-            print(f"Remove object: {path}")
-
-        except Exception as e:
-            if throw_not_found:
-                print(f"Failed when remove resource: {path}")
-                raise e
-
-            print(f"Resource not found: {path}")

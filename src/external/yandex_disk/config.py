@@ -1,7 +1,9 @@
 from typing import Literal
-from config import BaseConfig
-from pydantic import Field
+
 from dotenv import load_dotenv
+from pydantic import Field
+
+from config import BaseConfig
 
 load_dotenv(override=True)
 
