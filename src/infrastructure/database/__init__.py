@@ -28,7 +28,7 @@ async def tortoise_startup():
 
 
 async def tortoise_shutdown():
-    logger.warn("Start closing connections")
+    logger.warning("Start closing connections")
 
     await Tortoise.close_connections()
 

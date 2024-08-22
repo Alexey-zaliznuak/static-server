@@ -23,7 +23,7 @@ def handle_unauthorized_error(method):
             return await method(self, *args, **kwargs)
 
         except yadisk.exceptions.UnauthorizedError:
-            logger.warn(f"Get UnauthorizedError, recall method: {method.__name__}")
+            logger.warning(f"Get UnauthorizedError, recall method: {method.__name__}")
 
             await YandexDiskService().init_client()
             return await method(self, *args, **kwargs)
@@ -112,14 +112,14 @@ class YandexDiskService(metaclass=SingletonMeta):
     async def remove(self, path: str, *, throw_not_found: bool = True):
         try:
             await self.client.remove(path)
-            logger.warn(f"Removed object: {path}")
+            logger.warning(f"Removed object: {path}")
 
         except yadisk.exceptions.NotFoundError as e:
             if throw_not_found:
                 logger.error(f"Failed when remove object: {path}")
                 raise e
 
-            logger.warn(f"Resource not found: {path}")
+            logger.warning(f"Resource not found: {path}")
 
     async def _get_new_access_token(self):
         async with aiohttp.ClientSession() as session:

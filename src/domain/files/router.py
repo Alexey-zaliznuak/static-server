@@ -155,7 +155,7 @@ class FilesView:
         request: Request,
         file: File = Depends(validate_file_id),
     ):
-        logger.warn("Delete file: " + str(dict(file)))
+        logger.warning("Delete file: " + str(dict(file)))
 
         await file.delete()
         return Response(status_code=status.HTTP_204_NO_CONTENT, headers={**NO_CACHE_HEADER})

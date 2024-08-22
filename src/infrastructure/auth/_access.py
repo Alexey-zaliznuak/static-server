@@ -25,7 +25,7 @@ class admin_access:  # pylint: disable=invalid-name
             is_allowed = await cls.verify_request()
 
             if not is_allowed:
-                logger.warn("Verify request permissions failed: " + str(dict(
+                logger.warning("Verify request permissions failed: " + str(dict(
                     url=cls.request.url,
                     auth=cls.auth_header,
                 )))
