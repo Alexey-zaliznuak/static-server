@@ -121,6 +121,26 @@ class YandexDiskService(metaclass=SingletonMeta):
 
             logger.warning(f"Resource not found: {path}")
 
+    @handle_unauthorized_error
+    @handle_check_client
+    async def get_upload_link(self, path: str):
+        try:
+            await self.create_directory(os.path.dirname(path))
+            upload_url = await self.client.get_upload_link(path, overwrite=True)
+
+            if upload_url:
+                return upload_url
+
+            logger.error("Failed to generate upload URL")
+
+        except yadisk.exceptions.PathNotFoundError as e:
+            logger.error(f"Path not found on Yandex Disk: {path}")
+            raise e
+
+        except yadisk.exceptions.YaDiskError as e:
+            logger.error(f"Error generating Yandex Disk upload URL: {str(e)}")
+            raise e
+
     async def _get_new_access_token(self):
         async with aiohttp.ClientSession() as session:
             async with session.post(

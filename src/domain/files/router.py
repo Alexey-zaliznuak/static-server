@@ -6,7 +6,6 @@ from fastapi import (HTTPException, Request, Response,
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi_restful.cbv import cbv
-from pydantic import ValidationError
 
 from external.yandex_disk import YandexDiskService
 from infrastructure.auth import admin_access
@@ -131,26 +130,15 @@ class FilesView:
         try:
             logger.info("Start file uploading: " + str(dict(instance)))
 
-            content = await file.read()
-            path = await self.service.upload_file(instance, file, content)
+            yandex_disk_upload_url = await self.yandex_disk_service.get_upload_link(instance.path)
 
-            instance = instance.update_from_dict(dict(
-                (await self.service.get_file_metadata(file, content)).__dict__,
-                path=path,
-            ))
+            if not yandex_disk_upload_url:
+                raise HTTPException(status_code=500, detail="Failed to generate Yandex Disk URL")
 
-            await instance.save()
-            logger.info("Updated file after uploading: " + str(dict(instance)))
+            return RedirectResponse(url=yandex_disk_upload_url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
-            return JSONResponse(
-                jsonable_encoder(
-                    FileGet.model_validate(instance).model_dump()
-                ),
-                headers={**NO_CACHE_HEADER}
-            )
-
-        except ValidationError:
-            logger.error("Failed to upload: " + str(dict(file)))
+        except ValueError:
+            logger.error("Failed to upload: " + str(dict(instance)))
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to upload")
 
     @router.delete("/{file_id}", response_model=None)
