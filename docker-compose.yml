@@ -1,6 +1,7 @@
 version: '3'
 
 volumes:
+  logs:
   postgres_data:
 
 services:
@@ -21,11 +22,14 @@ services:
       timeout: 10s
       retries: 10
 
-
   backend:
     build:
       dockerfile: ./docker/Dockerfile
+
     env_file: .env
+
+    volumes:
+      - logs:/app/logs
 
     depends_on:
       db:
