@@ -100,7 +100,7 @@ class FilesView:
         self,
         data: FileUpdate,
         request: Request,
-        file: File = Depends(validate_file_id),
+        file: File = Depends(validate_file),
     ):
         logger.info("Update file", {
             "file": str(dict(file)),
@@ -125,7 +125,7 @@ class FilesView:
         self,
         request: Request,
         file: UploadFile = FastAPIFile(...),
-        instance: File = Depends(validate_file_id),
+        instance: File = Depends(validate_file),
     ):
         try:
             logger.info("Start file uploading: " + str(dict(instance)))
