@@ -1,10 +1,10 @@
 from typing import Generic, Optional, Type, TypeVar
 
 from fastapi import Query
-from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from tortoise.models import Model
 from tortoise.queryset import QuerySet
+
 
 T = TypeVar("T", bound=Model)
 

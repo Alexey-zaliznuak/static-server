@@ -20,7 +20,7 @@ def run_command(command: str, print_blank_end_line: bool = True):
 
 
 def check_env_file_exists():
-    env_file = '.env'
+    env_file = ".env"
 
     if not os.path.isfile(env_file):
         raise EnvironmentError(f"Env file: {env_file} does not exist.")
@@ -34,7 +34,8 @@ def main(branch):
 
     # Run ssh agent, add github ssh key
     run_command('eval "$(ssh-agent -s)"')
-    run_command('SSH_AUTH_SOCK=$SSH_AUTH_SOCK ssh-add ~/.ssh/github')  # SSH_AUTH_SOCK=$SSH_AUTH_SOCK что бы был ssh агент текущего пользователя
+    # SSH_AUTH_SOCK=$SSH_AUTH_SOCK что бы был ssh агент текущего пользователя
+    run_command("SSH_AUTH_SOCK=$SSH_AUTH_SOCK ssh-add ~/.ssh/github")
 
     # Pull changes
     print("Pull repo...")
@@ -53,8 +54,8 @@ def main(branch):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Клонирование репозиториев и выполнение Docker Compose.")
-    parser.add_argument('--dev', action='store_true', help='Use dev branch for cloning.')
-    parser.add_argument('--master', action='store_true', help='Use master branch for cloning.')
+    parser.add_argument("--dev", action="store_true", help="Use dev branch for cloning.")
+    parser.add_argument("--master", action="store_true", help="Use master branch for cloning.")
 
     args = parser.parse_args()
 
