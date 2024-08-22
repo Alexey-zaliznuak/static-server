@@ -5,6 +5,7 @@ logs/
 
 __pycache__/
 .vscode/
+.ruff_cache/
 
 .env
 test.py
