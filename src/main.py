@@ -36,7 +36,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.get("/test/ping", response_model=Literal["pong"])
 def ping():
     return "pong"

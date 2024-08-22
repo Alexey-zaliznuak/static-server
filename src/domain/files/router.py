@@ -67,6 +67,10 @@ class FilesView:
         request: Request,
         file: File = Depends(validate_file)
     ):
+        if not file.path:
+            logger.info("Failed to download file - no path: " + str(dict(file)))
+            raise HTTPException(404, "Not found")
+
         url = await self.yandex_disk_service.get_download_link(file.path)
 
         logger.info("Download file:" + str(dict(file, download_url = url)))
@@ -124,7 +128,7 @@ class FilesView:
         instance: File = Depends(validate_file_id),
     ):
         try:
-            logger.info("Start file uploading: " + str(dict(file)))
+            logger.info("Start file uploading: " + str(dict(instance)))
 
             content = await file.read()
             path = await self.service.upload_file(instance, file, content)
@@ -134,8 +138,8 @@ class FilesView:
                 path=path,
             ))
 
-            logger.info("Updated file after uploading: " + str(dict(file)))
             await instance.save()
+            logger.info("Updated file after uploading: " + str(dict(instance)))
 
             return JSONResponse(
                 jsonable_encoder(

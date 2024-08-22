@@ -1,4 +1,7 @@
+docker-compose*
+
 data/
+docker/
 env/
 venv/
 logs/
@@ -7,5 +10,6 @@ __pycache__/
 .vscode/
 .ruff_cache/
 
-*.env
+.env.dist
+.gitignore
 test.py
