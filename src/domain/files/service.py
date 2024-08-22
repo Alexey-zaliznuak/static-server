@@ -1,3 +1,4 @@
+import logging
 import mimetypes
 import os
 from dataclasses import dataclass
@@ -10,6 +11,8 @@ from external.yandex_disk import YandexDiskService
 from src.domain.files.models import File
 from src.utils import SingletonMeta
 
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -38,10 +41,10 @@ class FilesService(metaclass=SingletonMeta):
             instance = await self.get_instance(identifier, field)
 
         except Exception:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
+            self._raise_not_found()
 
         if not instance:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
+            self._raise_not_found()
 
         return instance
 
@@ -58,6 +61,10 @@ class FilesService(metaclass=SingletonMeta):
             size = len(file_content),
             mime_type = file.content_type or mimetypes.guess_type(file.filename)[0]
         )
+
+    def raise_not_found(self, file: File):
+        logger.warn("Not found", )
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
 
     def _make_file_path(self, instance: File, file: UploadFile) -> str:
         """

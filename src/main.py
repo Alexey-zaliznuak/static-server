@@ -15,7 +15,10 @@ from infrastructure.database import tortoise_shutdown, tortoise_startup
 from infrastructure.openapi import build_custom_openapi_schema
 from infrastructure.rate_limit import limiter
 from infrastructure.route.middlewares import ProcessTimeMiddleware
+from infrastructure.logging import init_logging_settings
 
+
+init_logging_settings()
 app = FastAPI(docs_url="/api/docs")
 
 app.state.limiter = limiter

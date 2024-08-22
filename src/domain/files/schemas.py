@@ -4,6 +4,11 @@ from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel
+from src.domain.files.models import File
+from tortoise.contrib.pydantic import pydantic_model_creator
+
+
+PydanticFile = pydantic_model_creator(File, name="File")
 
 
 class UniqueFieldsEnum(str, Enum):

@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends
 from fastapi import File as FastAPIFile
 from fastapi import (HTTPException, Request, Response,
@@ -21,14 +22,15 @@ from .dependencies import validate_file, validate_file_id
 from .schemas import FileCreate, FileGet, FileUpdate
 from .service import FilesService
 
+
 router = APIRouter(tags=["files"])
+logger = logging.getLogger(__name__)
 
 
 @cbv(router)
 class FilesView:
     service = FilesService()
     yandex_disk_service = YandexDiskService()
-
 
     @router.get("/", response_model=PaginatedResponse[FileGet])
     @limiter.limit("10/minute")
@@ -43,7 +45,6 @@ class FilesView:
             pagination=pagination,
         )
 
-
     @router.get("/{identifier}/info", response_model=FileGet)
     @limiter.limit("10/minute")
     @admin_access()
@@ -52,6 +53,7 @@ class FilesView:
         request: Request,
         file: File = Depends(validate_file)
     ):
+        logger.info("Get file details: " + str(dict(file)))
         return file
 
     @router.get("/{identifier}")
@@ -61,9 +63,10 @@ class FilesView:
         request: Request,
         file: File = Depends(validate_file)
     ):
-        return RedirectResponse(
-            url = await self.yandex_disk_service.get_download_link(file.path)
-        )
+        url = await self.yandex_disk_service.get_download_link(file.path)
+
+        logger.info("Download file:" + str(dict(file, download_url = url)))
+        return RedirectResponse(url = url)
 
     @router.post("/", response_model=FileGet)
     @admin_access()
@@ -73,7 +76,10 @@ class FilesView:
         await new_file.validate_unique()
         await new_file.save()
 
-        return FileGet.model_validate(new_file).model_dump()
+        new_file = FileGet.model_validate(new_file).model_dump()
+
+        logger.info("Created file: " + str(new_file))
+        return new_file
 
     @router.patch("/{file_id}", response_model=FileGet)
     @admin_access()
@@ -83,6 +89,11 @@ class FilesView:
         request: Request,
         file: File = Depends(validate_file_id),
     ):
+        logger.info("Update file", {
+            "file": str(dict(file)),
+            "data": data,
+        })
+
         file = file.update_from_dict(data.model_dump())
 
         await file.save()
@@ -102,6 +113,8 @@ class FilesView:
         instance: File = Depends(validate_file_id),
     ):
         try:
+            logger.info("Start file uploading: " + str(dict(file)))
+
             content = await file.read()
             path = await self.service.upload_file(instance, file, content)
 
@@ -110,11 +123,13 @@ class FilesView:
                 path=path,
             ))
 
+            logger.info("Updated file after uploading: " + str(dict(file)))
             await instance.save()
 
             return instance
 
         except ValidationError:
+            logger.error("Failed to upload: " + str(dict(file)))
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to upload")
 
     @router.delete("/{file_id}", response_model=None)
@@ -124,5 +139,7 @@ class FilesView:
         request: Request,
         file: File = Depends(validate_file_id),
     ):
+        logger.warn("Delete file: " + str(dict(file)))
+
         await file.delete()
         return Response(status_code=status.HTTP_204_NO_CONTENT)

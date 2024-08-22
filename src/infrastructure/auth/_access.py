@@ -1,9 +1,13 @@
 import functools
+import logging
 from typing import Any, Callable
 
 from fastapi import HTTPException, Request
 
 from src.config import Config
+
+
+logger = logging.getLogger(__name__)
 
 
 class admin_access:  # pylint: disable=invalid-name
@@ -21,6 +25,10 @@ class admin_access:  # pylint: disable=invalid-name
             is_allowed = await cls.verify_request()
 
             if not is_allowed:
+                logger.warn("Verify request permissions failed: " + str(dict(
+                    url=cls.request.url,
+                    auth=cls.auth_header,
+                )))
                 raise HTTPException(403, "Method not allowed.")
 
             return await function(*args, **kwargs)
