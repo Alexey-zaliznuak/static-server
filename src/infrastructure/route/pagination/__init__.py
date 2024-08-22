@@ -1,6 +1,7 @@
 from typing import Generic, Optional, Type, TypeVar
 
 from fastapi import Query
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from tortoise.models import Model
 from tortoise.queryset import QuerySet
@@ -48,6 +49,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
     async def create(
         cls,
         model: Type[T],
+        schema: BaseModel,
         pagination: PaginationParams,
         filters: Optional[dict] = None,
     ) -> "PaginatedResponse[T]":

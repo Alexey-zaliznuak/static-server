@@ -42,6 +42,7 @@ class FilesView:
     ):
         return await PaginatedResponse.create(
             model=File,
+            schema=FileGet,
             pagination=pagination,
         )
 

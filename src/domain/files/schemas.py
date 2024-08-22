@@ -45,6 +45,7 @@ class FileGet(BaseModel):
     description: Optional[str] = None
 
     mime_type: Optional[str]
+    size: Optional[int]
 
     class Config:
         from_attributes = True
