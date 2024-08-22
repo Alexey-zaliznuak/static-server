@@ -45,7 +45,7 @@ class File(Model):
             self.slug=slugify(text=to_slugify, max_length=File.slug.max_length)
 
         if not self.mime_type and self.filename:
-            self.mime_type = mimetypes.guess_type(self.filename)[0] or 'application/octet-stream'
+            self.mime_type = mimetypes.guess_type(self.filename)[0] or "application/octet-stream"
 
     def validate(self):
         self.validate_slug(self.slug)

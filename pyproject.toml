@@ -2,3 +2,8 @@
 tortoise_orm = "src.config.TORTOISE_ORM"
 location = "./migrations"
 src_folder = "./."
+
+[tool.ruff]
+select = ["E", "F", "Q"]
+ignore = []
+line-length = 130

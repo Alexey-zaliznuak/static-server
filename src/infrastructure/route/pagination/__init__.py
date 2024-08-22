@@ -1,11 +1,9 @@
-from typing import Dict, Generic, List, Optional, Self, Type, TypeVar, overload
+from typing import Generic, Optional, Type, TypeVar
 
 from fastapi import Query
 from pydantic import BaseModel
 from tortoise.models import Model
 from tortoise.queryset import QuerySet
-
-from src.domain.files.models import File
 
 T = TypeVar("T", bound=Model)
 
@@ -13,7 +11,7 @@ T = TypeVar("T", bound=Model)
 def get_pagination_params(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100)
-) -> 'PaginationParams':
+) -> "PaginationParams":
     return PaginationParams(page=page, size=size)
 
 
@@ -30,13 +28,13 @@ class PaginationParams(BaseModel):
 
 
 class PaginatedResponse(BaseModel, Generic[T]):
-    data: List[T]
+    data: list[T]
     page: int
     size: int
     total_items: int
     total_pages: int
 
-    def __init__(self, data: List[T], pagination: PaginationParams, total_items: int):
+    def __init__(self, data: list[T], pagination: PaginationParams, total_items: int):
         total_pages = (total_items + pagination.size - 1) // pagination.size
         super().__init__(
             data=data,
@@ -51,7 +49,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
         cls,
         model: Type[T],
         pagination: PaginationParams,
-        filters: Optional[Dict] = None,
+        filters: Optional[dict] = None,
     ) -> "PaginatedResponse[T]":
         query = model.all()
 

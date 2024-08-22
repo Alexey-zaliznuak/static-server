@@ -4,12 +4,11 @@ from tortoise import Tortoise
 
 try:
     from src.config import TORTOISE_ORM
-    from src.domain.files.models import File
 
 except ImportError:
     import os
     import sys
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
     from src.config import TORTOISE_ORM
 
 

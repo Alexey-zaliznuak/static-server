@@ -1,24 +1,24 @@
 from fastapi import APIRouter, Depends
 from fastapi import File as FastAPIFile
-from fastapi import (Header, HTTPException, Query, Request, Response,
+from fastapi import (HTTPException, Request, Response,
                      UploadFile, status)
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi_restful.cbv import cbv
 from pydantic import ValidationError
 
 from external.yandex_disk import YandexDiskService
 from infrastructure.auth import admin_access
 from infrastructure.route.headers import NO_CACHE_HEADER
+
 from src.domain.files.models import File
 from src.infrastructure.rate_limit import limiter
 from src.infrastructure.route.pagination import (PaginatedResponse,
                                                  PaginationParams,
                                                  get_pagination_params)
 
-from .config import FilesConfig as Config
 from .dependencies import validate_file, validate_file_id
-from .schemas import FileCreate, FileGet, FileUpdate, UniqueFieldsEnum
+from .schemas import FileCreate, FileGet, FileUpdate
 from .service import FilesService
 
 router = APIRouter(tags=["files"])
@@ -114,7 +114,7 @@ class FilesView:
 
             return instance
 
-        except ValidationError as e:
+        except ValidationError:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to upload")
 
     @router.delete("/{file_id}", response_model=None)

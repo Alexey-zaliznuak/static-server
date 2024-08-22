@@ -10,7 +10,6 @@ from external.yandex_disk import YandexDiskService
 from src.domain.files.models import File
 from src.utils import SingletonMeta
 
-from .config import FilesConfig
 
 
 @dataclass
@@ -38,7 +37,7 @@ class FilesService(metaclass=SingletonMeta):
         try:
             instance = await self.get_instance(identifier, field)
 
-        except:
+        except Exception:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Not found")
 
         if not instance:
