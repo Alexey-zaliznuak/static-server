@@ -37,12 +37,15 @@ def main(branch):
     run_command('SSH_AUTH_SOCK=$SSH_AUTH_SOCK ssh-add ~/.ssh/github')  # SSH_AUTH_SOCK=$SSH_AUTH_SOCK что бы был ssh агент текущего пользователя
 
     # Pull changes
-    print("Pull gateway...")
+    print("Pull repo...")
     run_command("git pull")
 
     # Rstart Docker Compose
     print("Stopping Docker Compose")
-    run_command("sudo docker compose down")
+    try:
+        run_command("sudo docker compose down")
+    except Exception as e:
+        print("Error: " + str(e))
 
     print("Rebuild Docker Compose")
     run_command("sudo docker compose up --build -d")
