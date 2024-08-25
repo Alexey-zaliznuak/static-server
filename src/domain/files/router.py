@@ -94,7 +94,7 @@ class FilesView:
             headers={**NO_CACHE_HEADER},
         )
 
-    @router.patch("/{file_id}", response_model=FileGet)
+    @router.patch("/{identifier}", response_model=FileGet)
     @admin_access()
     async def update_by_id(
         self,
@@ -119,7 +119,7 @@ class FilesView:
             headers={**NO_CACHE_HEADER}
         )
 
-    @router.put("/{file_id}")
+    @router.put("/{identifier}")
     @admin_access()
     async def upload_by_id(
         self,
@@ -141,7 +141,7 @@ class FilesView:
             logger.error("Failed to upload: " + str(dict(instance)))
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to upload")
 
-    @router.delete("/{file_id}", response_model=None)
+    @router.delete("/{identifier}", response_model=None)
     @admin_access()
     async def delete_by_id(
         self,
