@@ -34,7 +34,7 @@ class FilesService(metaclass=SingletonMeta):
 
         if instance.path != new_path:
             logger.info("Update instanse path: " + str(paths))
-            await File.update_from_dict(dict(path=new_path))
+            await instance.update_from_dict(dict(path=new_path))
 
         return yandex_disk_upload_url
 
