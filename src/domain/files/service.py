@@ -24,7 +24,7 @@ class FileMetadata:
 class FilesService(metaclass=SingletonMeta):
     yandex_disk_service = YandexDiskService()
 
-    async def get_upoload_link(self, instance: File, file: UploadFile) -> str:
+    async def get_upload_link(self, instance: File, file: UploadFile) -> str:
         new_path = self._make_file_path(instance, file)
         paths = dict(old=instance.path, new=new_path)
 
