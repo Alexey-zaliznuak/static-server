@@ -15,6 +15,10 @@ from src.utils import SingletonMeta
 logger = logging.getLogger(__name__)
 
 
+type upload_path = str
+type upload_url = str
+
+
 @dataclass
 class FileMetadata:
     size: int
@@ -24,7 +28,7 @@ class FileMetadata:
 class FilesService(metaclass=SingletonMeta):
     yandex_disk_service = YandexDiskService()
 
-    async def get_upload_link(self, instance: File, file: UploadFile) -> str:
+    async def get_upload_data(self, instance: File, file: UploadFile) -> tuple[upload_path, upload_url]:
         new_path = self._make_file_path(instance, file)
         paths = dict(old=instance.path, new=new_path)
 
@@ -32,11 +36,7 @@ class FilesService(metaclass=SingletonMeta):
 
         yandex_disk_upload_url = await self.yandex_disk_service.get_upload_link(new_path)
 
-        if instance.path != new_path:
-            logger.info("Update instanse path: " + str(paths))
-            await instance.update_from_dict(dict(path=new_path))
-
-        return yandex_disk_upload_url
+        return new_path, yandex_disk_upload_url
 
     async def get_instance_or_404(self, identifier: str, field: UniqueFieldsEnum | None = UniqueFieldsEnum.id) -> File:
         field = field if field else UniqueFieldsEnum.id

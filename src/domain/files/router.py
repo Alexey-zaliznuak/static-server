@@ -130,7 +130,11 @@ class FilesView:
         try:
             logger.info("Start file uploading: " + str(dict(instance)))
 
-            upload_url = await self.service.get_upload_link(instance, file)
+            upload_path, upload_url = await self.service.get_upload_data(instance, file)
+
+            if instance.path != upload_path:
+                logger.info("Update instanse path: " + str(upload_path))
+                await instance.update_from_dict(dict(path=upload_path)).save()
 
             return RedirectResponse(url=upload_url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
