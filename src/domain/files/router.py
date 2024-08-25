@@ -69,7 +69,7 @@ class FilesView:
     ):
         if not file.path:
             logger.info("Failed to download file - no path: " + str(dict(file)))
-            raise HTTPException(404, "Not found")
+            raise HTTPException(404, "No file")
 
         url = await self.yandex_disk_service.get_download_link(file.path)
 
