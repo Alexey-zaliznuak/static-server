@@ -124,6 +124,11 @@ class YandexDiskService(metaclass=SingletonMeta):
     @handle_unauthorized_error
     @handle_check_client
     async def get_upload_link(self, path: str):
+        """
+        Get link for file uploading.
+        Recursively creates directories.
+        """
+
         try:
             await self.create_directory(os.path.dirname(path))
             upload_url = await self.client.get_upload_link(path, overwrite=True)

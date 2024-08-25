@@ -24,14 +24,19 @@ class FileMetadata:
 class FilesService(metaclass=SingletonMeta):
     yandex_disk_service = YandexDiskService()
 
-    async def upload_file(self, instance: File, file: UploadFile, file_content: bytes) -> str:
-        path = self._make_file_path(instance, file)
+    async def get_upoload_link(self, instance: File, file: UploadFile) -> str:
+        new_path = self._make_file_path(instance, file)
+        paths = dict(old=instance.path, new=new_path)
 
-        if instance.path:
-            await self.yandex_disk_service.remove(instance.path, throw_not_found=False)
-        await self.yandex_disk_service.upload_file(file_content, path)
+        logger.info("File paths: " + str(paths))
 
-        return path
+        yandex_disk_upload_url = await self.yandex_disk_service.get_upload_link(new_path)
+
+        if instance.path != new_path:
+            logger.info("Update instanse path: " + str(paths))
+            await File.update_from_dict(dict(path=new_path))
+
+        return yandex_disk_upload_url
 
     async def get_instance_or_404(self, identifier: str, field: UniqueFieldsEnum | None = UniqueFieldsEnum.id) -> File:
         field = field if field else UniqueFieldsEnum.id

@@ -130,7 +130,7 @@ class FilesView:
         try:
             logger.info("Start file uploading: " + str(dict(instance)))
 
-            yandex_disk_upload_url = await self.yandex_disk_service.get_upload_link(instance.path)
+            yandex_disk_upload_url = self.service.get_upload_link(instance, file)
 
             if not yandex_disk_upload_url:
                 raise HTTPException(status_code=500, detail="Failed to generate Yandex Disk URL")
