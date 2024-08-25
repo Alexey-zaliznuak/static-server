@@ -1,5 +1,6 @@
 import logging
-from fastapi import APIRouter, Depends
+import mimetypes
+from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi import File as FastAPIFile
 from fastapi import (HTTPException, Request, Response,
                      UploadFile, status)
@@ -18,7 +19,7 @@ from src.infrastructure.route.pagination import (PaginatedResponse,
                                                  get_pagination_params)
 
 from .dependencies import validate_file, validate_file_id
-from .schemas import FileCreate, FileGet, FileUpdate
+from .schemas import FileCreate, FileGet, FileUpdate, UniqueFieldsEnum
 from .service import FilesService
 
 
@@ -124,6 +125,7 @@ class FilesView:
     async def upload(
         self,
         request: Request,
+        background_tasks: BackgroundTasks,
         file: UploadFile = FastAPIFile(...),
         instance: File = Depends(validate_file),
     ):
@@ -132,15 +134,22 @@ class FilesView:
 
             upload_path, upload_url = await self.service.get_upload_data(instance, file)
 
-            if instance.path != upload_path:
-                logger.info("Update instanse path: " + str(upload_path))
-                await instance.update_from_dict(dict(path=upload_path)).save()
+            background_tasks.add_task(
+                self.service.update_and_save_instance,
+                instance=instance,
+                data=dict(
+                    path=upload_path,
+                    size=file.size,
+                    mime_type=file.content_type or mimetypes.guess_type(file.filename)[0]
+                )
+            )
 
             return RedirectResponse(url=upload_url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
         except ValueError:
             logger.error("Failed to upload: " + str(dict(instance)))
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Failed to upload")
+
 
     @router.delete("/{identifier}", response_model=None)
     @admin_access()

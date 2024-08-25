@@ -15,6 +15,7 @@ def init_logging_settings():
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[
             logging.FileHandler(full_logs_dir + "app.log"),
+            logging.StreamHandler(),
             DateTimeFileHandler(Config.BASE_LOG_DIRECTORY),
         ]
     )

@@ -19,12 +19,6 @@ type upload_path = str
 type upload_url = str
 
 
-@dataclass
-class FileMetadata:
-    size: int
-    mime_type: str
-
-
 class FilesService(metaclass=SingletonMeta):
     yandex_disk_service = YandexDiskService()
 
@@ -56,16 +50,22 @@ class FilesService(metaclass=SingletonMeta):
     async def get_instance(self, identifier: str, field: UniqueFieldsEnum = UniqueFieldsEnum.id) -> File | None:
         return await File.filter(**{field: identifier}).first()
 
-    async def get_file_metadata(self, file: UploadFile, file_content: bytes = None) -> FileMetadata:
+    async def update_and_save_instance(self, instance: File, data: dict):
         """
-        :param: content content of file.read if it was call
+        Update instance if need, logs changes
         """
-        file_content = await file.read() or file_content
+        modified_data = dict()
 
-        return FileMetadata(
-            size = len(file_content),
-            mime_type = file.content_type or mimetypes.guess_type(file.filename)[0]
-        )
+        for key, new_value in data.items():
+            if getattr(instance, key) != new_value:
+                modified_data[key] = new_value
+
+        if modified_data:
+            await instance.update_from_dict(modified_data).save()
+            logger.info("\n".join(["Modified data:", str(dict(instance)), "New data", str(dict(modified_data))]))
+            return
+
+        logger.info("No changes for modify: " + str(dict(instance)))
 
     def raise_not_found(self, identifier: str, field: UniqueFieldsEnum = UniqueFieldsEnum.id):
         logger.error(f"Not found, {identifier=}, {field=}")
