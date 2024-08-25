@@ -132,9 +132,6 @@ class FilesView:
 
             upload_url = self.service.get_upload_link(instance, file)
 
-            if not upload_url:
-                raise HTTPException(status_code=500, detail="Failed to generate Yandex Disk upload URL")
-
             return RedirectResponse(url=upload_url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
         except ValueError:
