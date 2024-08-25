@@ -121,7 +121,7 @@ class FilesView:
 
     @router.put("/{identifier}")
     @admin_access()
-    async def upload_by_id(
+    async def upload(
         self,
         request: Request,
         file: UploadFile = FastAPIFile(...),
@@ -130,12 +130,12 @@ class FilesView:
         try:
             logger.info("Start file uploading: " + str(dict(instance)))
 
-            yandex_disk_upload_url = self.service.get_upload_link(instance, file)
+            upload_url = self.service.get_upload_link(instance, file)
 
-            if not yandex_disk_upload_url:
+            if not upload_url:
                 raise HTTPException(status_code=500, detail="Failed to generate Yandex Disk URL")
 
-            return RedirectResponse(url=yandex_disk_upload_url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
+            return RedirectResponse(url=upload_url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
         except ValueError:
             logger.error("Failed to upload: " + str(dict(instance)))
@@ -143,10 +143,10 @@ class FilesView:
 
     @router.delete("/{identifier}", response_model=None)
     @admin_access()
-    async def delete_by_id(
+    async def delete(
         self,
         request: Request,
-        file: File = Depends(validate_file_id),
+        file: File = Depends(validate_file),
     ):
         logger.warning("Delete file: " + str(dict(file)))
 
