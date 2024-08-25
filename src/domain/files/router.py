@@ -96,7 +96,7 @@ class FilesView:
 
     @router.patch("/{identifier}", response_model=FileGet)
     @admin_access()
-    async def update_by_id(
+    async def update(
         self,
         data: FileUpdate,
         request: Request,
@@ -130,7 +130,7 @@ class FilesView:
         try:
             logger.info("Start file uploading: " + str(dict(instance)))
 
-            upload_url = self.service.get_upload_link(instance, file)
+            upload_url = await self.service.get_upload_link(instance, file)
 
             return RedirectResponse(url=upload_url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)
 
