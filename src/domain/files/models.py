@@ -42,7 +42,7 @@ class File(Model):
     def clear(self):
         if not self.slug:
             to_slugify = self.title or self.description
-            self.slug=slugify(text=to_slugify, max_length=File.slug.max_length)
+            self.slug=slugify(text=to_slugify, max_length=100)
 
         if not self.mime_type and self.filename:
             self.mime_type = mimetypes.guess_type(self.filename)[0] or "application/octet-stream"
