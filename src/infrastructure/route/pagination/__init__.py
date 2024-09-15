@@ -53,7 +53,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
         pagination: PaginationParams,
         filters: Optional[dict] = None,
     ) -> "PaginatedResponse[T]":
-        query = model.all().order_by('created_at')
+        query = model.all().order_by('-created_at')
 
         if filters:
             query = query.filter(**filters)
