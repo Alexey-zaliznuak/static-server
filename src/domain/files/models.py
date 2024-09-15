@@ -34,15 +34,26 @@ class File(Model):
             ("title",),
         ]
 
+    async def generate_slug(self, title: str):
+        base_slug = slugify(title)
+        unique_slug = base_slug
+        counter = 1
+
+        while await self.filter(slug=unique_slug).exists():
+            unique_slug = f"{base_slug}-{counter}"
+            counter += 1
+
+        return unique_slug
+
     async def save(self, *args, **kwargs):
-        self.clear()
+        await self.clear()
         self.validate()
+
         await super().save(*args, **kwargs)
 
-    def clear(self):
+    async def clear(self):
         if not self.slug:
-            to_slugify = self.title or self.description
-            self.slug=slugify(text=to_slugify, max_length=100)
+            self.slug = await self.generate_slug(self.title or self.description)
 
         if not self.mime_type and self.filename:
             self.mime_type = mimetypes.guess_type(self.filename)[0] or "application/octet-stream"
