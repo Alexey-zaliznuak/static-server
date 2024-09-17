@@ -42,6 +42,10 @@ services:
       timeout: 5s
       retries: 5
 
+    deploy:
+      - 'b 8:* rmw 1mb'                 # Write limit up to 1 MB/s
+      - 'b 8:* rmw 1mb'                 # Read limit up to 1 MB/s
+
 
   nginx:
     image: nginx:1.19.3
