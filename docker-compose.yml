@@ -42,13 +42,11 @@ services:
       timeout: 5s
       retries: 5
 
-    blkio_config:
-      device_read_bps:
-        - path: /dev/sda
-          rate: '1mb'
-      device_write_bps:
-        - path: /dev/sda
-          rate: '1mb'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+
 
   nginx:
     image: nginx:1.19.3
