@@ -22,6 +22,11 @@ services:
       timeout: 10s
       retries: 10
 
+    deploy:
+      resources:
+        limits:
+          memory: 256M    # Max usage
+          cpus: '0.15'
 
   backend:
     build:
@@ -45,9 +50,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 128M
-          cpus: '0.15'
-
+          memory: 300M    # Max usage
+          cpus: '0.2'
 
   nginx:
     image: nginx:1.19.3
