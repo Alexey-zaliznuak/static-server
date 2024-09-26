@@ -33,7 +33,6 @@ class FilesView:
     yandex_disk_service = YandexDiskService()
 
     @router.get("/", response_model=PaginatedResponse[FileGet])
-    @limiter.limit("10/minute")
     @admin_access()
     async def get_all(
         self,
